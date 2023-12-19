@@ -4,20 +4,24 @@
 #include<vector>
 #include"LinkedList.h"
 using namespace std;
+
 //Хеш - таблица, реализованная по методу цепочек
 template<class T>
-class HashTable:public LinkedList<T> {
+class HashTable {
 private:
+    using hashFunc = unsigned long (*)(const T& key);
+
+
     //количество блоков(размер таблицы)
     int numBuckets;
     // вектор из списков блоков
     vector<LinkedList<T>> buckets;
     //указатель на функцию хеширования
-    unsigned long (*hf)(const T& key);
+    hashFunc hf;
 
     public:
     // конструктор с параметрами
-    HashTable(int numBuckets, unsigned long (*hashFunction)(const T& key))
+    HashTable(int numBuckets, hashFunc hashFunction)
         : numBuckets(numBuckets), buckets(numBuckets), hf(hashFunction) {}
 
     //вычисление индекса блока
@@ -39,10 +43,19 @@ private:
       buckets[index].Remove(key);
   }
   //печать
-  void Print() const {
-      for (auto bucket : buckets) {
+  void Print() {
+  
+      /*for (auto bucket : buckets) {
           bucket.Print();
+        
+      }*/
+
+      for (int i = 0; i < numBuckets; i++) {
+          cout << "Блок" << i << ": ";
+          buckets[i].Print();
+          cout << endl;
       }
+   
   }
 
  //поиск элемента
@@ -53,41 +66,73 @@ private:
   }
   //очистка
    void Clear() {
-       for (auto bucket : buckets) {
+       for (auto& bucket : buckets) {
            // Очистка каждого  списка
            bucket.Clear();
        }
    }
    // изменение значения на новое
    void Update(const T& key, const T& newValue) {
-       int index = GetIndex(key);
-       buckets[index].Update(key, newValue);
+       int indexOld = GetIndex(key);
+       int indexNew = GetIndex(newValue);
+       // если ключи находятся в одном списке, то заменям
+       if (indexOld == indexNew) {
+           buckets[indexOld].Update(key, newValue);
+       }
+       // если в разных - удаляем старый и вставляем новый в соответсвующих списках
+       else {
+           buckets[indexOld].Remove(key);
+           buckets[indexNew].InsertTail(newValue);
+       }
+
    }
    //размер таблицы
   int GetSize() const {
       return numBuckets;
   }
+  //подсчет фактического числа элементов в таблице
+  int CountElements() const
+  {
+      int count = 0;
+      /// суммируем размеры списков в таблице
+      for (int i = 0; i < numBuckets; ++i)
+      {
+          count += buckets[i].Size();
+      }
+      return count;
+  }
   
 };
 
 //хеш функции
-unsigned long HashFunction(const std::string& key) {
-   
-    return  key.length() ;
+//ДЖБ2
+unsigned long HashFunction(const string& key) {
+    //начальное значение хеша
+    unsigned long hash = 5381;
+    // хранение числового значения каждого символа строки key
+    int c;
+   //итерируемся по каждому символу в строке key
+    for (char ch : key) {
+        //запись текущего числового значения символа
+        c = ch;
+        //обновляем хеш-значение
+        hash = ((hash << 5) + hash) + c; 
+    }
+
+    return hash;
 }
 
+//unsigned long HashFunction(const int& key) {
+//
+//    return  key;
+//}
+//Метод сложения и сдвига 
 unsigned long HashFunction(const int& key) {
-
-    return  key;
+    unsigned long hash = static_cast<unsigned long>(key);
+    hash ^= (hash << 13);
+    hash ^= (hash >> 17);
+    hash ^= (hash << 5);
+    return hash;
 }
-template <class T>
-class HashTableIterator : public Iterator<T> {
-private:
-    HashTable<T>* HashTable;
 
-    int currentBusket;
-    LinkedList<T>* curr;
 
-public:
- 
-};

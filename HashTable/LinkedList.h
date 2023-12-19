@@ -10,12 +10,13 @@ public:
     T data;//поле данных узла
     Node<T>* next;//указатель на следующий узел
     Node<T>* prev;//указатель на предыдущий узел
-
+    
     //конструктор класса с параметром
     Node(const T& data) {
         this->data = data;
         next = nullptr;
         prev = nullptr;
+       
     }
 };
 
@@ -25,12 +26,13 @@ class LinkedList /*:public Iterable<T>*/ {
 private:
     Node<T>* head;//указатель на голову списка
     Node<T>* tail;//указател  на хвост списка
-
+    int size;
 public:
     //конструктор по умолчанию
     LinkedList() {
         head = nullptr;
         tail = nullptr;
+        size = 0;
     }
 
     void InsertHead(const T& data);                            // ¬ставка в голову списка
@@ -42,7 +44,7 @@ public:
     void Remove(const T& data);                                // ”даление узла
     void Sort();                                               // —ортировка выбором (возрастающий пор€док)
     void Update(const T& key, const T& newValue);              // »зменение значени€
-
+    int Size() const ;                                               // ѕолучение размера списка
     //класс итератора двусв€зного списка
     template<class T>
     class ListIterator :public Iterator<T> {
@@ -126,7 +128,7 @@ void LinkedList<T>::InsertHead(const T& data) {
         // новый узел становитс€ головным
         head = newNode;
     }
-
+    size++;
 }
 //вставка в хвост списка
 template<class T>
@@ -146,6 +148,8 @@ void LinkedList<T>::InsertTail(const T& data) {
         // Ќовый узел становитс€ хвостовым
         tail = newNode;
     }
+
+    size++;
 }
 
 //вставка узла в список после определенного значени€
@@ -177,6 +181,8 @@ void LinkedList<T>::InsertAfter(const T& DataAfter, const T& data) {
         // ѕереходим к следующему узлу
         current = current->next;
     }
+
+    size++;
 }
 //печать списка
 template<class T>
@@ -200,13 +206,13 @@ bool LinkedList<T>::Search(const T& data) {
     while (current != nullptr) {
         //если данные в текущем узле равны искомым
         if (current->data == data) {
-            // ¬озвращаем текущий узел,если элемент найден
+            // ¬озвращаем true,если элемент найден
             return true;
         }
         // ѕереходим к следующему узлу
         current = current->next;
     }
-    // ≈сли элемент не найден, возвращаем -1
+    // ≈сли элемент не найден, возвращаем false
     return false;
 }
 //удаление списка
@@ -218,22 +224,27 @@ void LinkedList<T>::Clear() {
         delete current;
 
     }
+    head = nullptr;
     tail = nullptr;
+    size = 0;
 }
 
 
 template<class T>
 void LinkedList<T>::Update(const T& key, const T& newValue) {
-    Node<T>* currentNode = head;
-
-    while (currentNode != nullptr) {
-        if (currentNode->data == key) {
-            currentNode->data = newValue;
-            break;
+    // ”становка текущего узла на голову списка
+    Node<T>* current = head;
+    // ѕоиск узла с ключом key
+    while (current != nullptr) {
+        if (current->data == key) {
+            // ќбновление значени€ ключа
+            current->data = newValue;
+            return;
         }
-        currentNode = currentNode->next;
+        current = current->next;
     }
 }
+
 //удаление узла
 template<class T>
 void LinkedList<T>::Remove(const T& data) {
@@ -265,11 +276,13 @@ void LinkedList<T>::Remove(const T& data) {
             }
             // ”дал€ем текущий узел
             delete current;
+            size--;
             return;
         }
         // ѕереходим к следующему узлу
         current = current->next;
     }
+   
 }
 
 // —ортировка выбором(возрастающий пор€док)
@@ -300,4 +313,9 @@ void LinkedList<T>::Sort() {
         }
         current = current->next;
     }
+}
+// ѕолучение размера списка
+template<class T>
+int LinkedList<T>::Size() const {
+    return size;
 }
